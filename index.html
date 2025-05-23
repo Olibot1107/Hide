@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Website Launcher</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #121212;
+      color: white;
+      padding: 20px;
+    }
+    input, button {
+      margin: 5px;
+      padding: 10px;
+      border-radius: 5px;
+      border: none;
+      font-size: 16px;
+    }
+    input.hidden-input {
+      -webkit-text-security: disc;
+    }
+    #urlList {
+      margin-top: 20px;
+    }
+    .site-entry {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      background-color: #333;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .site-entry button {
+      background-color: red;
+      color: white;
+      padding: 5px 10px;
+    }
+    .site-entry span {
+      flex-grow: 1;
+    }
+    .launch-btn {
+      background-color: green;
+      color: white;
+      margin-right: 10px;
+    }
+    #siteForm input {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Secure Website Launcher</h2>
+  <div id="siteForm">
+    <input type="text" id="siteName" placeholder="Name" class="hidden-input">
+    <input type="text" id="siteUrl" placeholder="URL" class="hidden-input">
+    <button onclick="addWebsite()">Add Website</button><button onclick="showAllInputs()">Show All</button>
+  </div>
+
+  <div id="urlList"></div>
+
+  <script>
+    function showAllInputs() {
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => input.classList.remove('hidden-input'));
+      setTimeout(() => {
+        inputs.forEach(input => input.classList.add('hidden-input'));
+      }, 2000);
+    }
+
+    function addWebsite() {
+      const name = document.getElementById('siteName').value;
+      const url = document.getElementById('siteUrl').value;
+      if (!name || !url) return alert("Fill in both fields");
+
+      let savedSites = getCookie('websites');
+      try {
+        savedSites = JSON.parse(savedSites || '[]');
+      } catch (e) {
+        savedSites = [];
+      }
+
+      savedSites.push({ name, url });
+      setCookie('websites', JSON.stringify(savedSites), 365);
+      renderSites();
+      document.getElementById('siteName').value = '';
+      document.getElementById('siteUrl').value = '';
+    }
+
+    function renderSites() {
+      const list = document.getElementById('urlList');
+      list.innerHTML = '';
+
+      let savedSites = getCookie('websites');
+      try {
+        savedSites = JSON.parse(savedSites || '[]');
+      } catch (e) {
+        savedSites = [];
+      }
+
+      savedSites.forEach((site, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'site-entry';
+
+        const label = document.createElement('span');
+        label.textContent = site.name;
+
+        const launchBtn = document.createElement('button');
+        launchBtn.textContent = 'Open';
+        launchBtn.className = 'launch-btn';
+        launchBtn.onclick = () => {
+          var win = window.open()
+var url = `${site.url}`
+var iframe = win.document.createElement('iframe')
+iframe.style.width = "100%";
+iframe.style.height = "100%";
+iframe.style.border = "none";
+iframe.src = url
+win.document.body.appendChild(iframe)
+        };
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => {
+          const answer = prompt("code plzzz");
+          if (answer === "1107") {
+            savedSites.splice(index, 1);
+            setCookie('websites', JSON.stringify(savedSites), 365);
+            renderSites();
+          } else {
+            alert("Incorrect answer. Access denied.");
+          }
+        };
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(launchBtn);
+        wrapper.appendChild(removeBtn);
+        list.appendChild(wrapper);
+      });
+    }
+
+    function setCookie(name, value, days) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + d.toUTCString();
+      document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+    }
+
+    function getCookie(name) {
+      const cname = name + "=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const ca = decodedCookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1);
+        if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
+      }
+      return "";
+    }
+
+    document.addEventListener('DOMContentLoaded', renderSites);
+  </script>
+</body>
+</html>
