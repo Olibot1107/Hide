@@ -1,10 +1,3 @@
-fetch('https://olibot1107.github.io/Hide/Tab.html')
-  .then(r => r.text())
-  .then(h => {
-    const container = document.createElement('div');
-    container.innerHTML = h;
-    document.body.appendChild(container);
-  });
 var rev = "fwd";
         function titlebar(pos){
             var msg = "❌nuh uh❌";
