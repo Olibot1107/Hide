@@ -1,0 +1,75 @@
+<style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      height: 100vh;
+      background: #0f0f0f;
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+      transition: background-color 0.4s ease;
+    }
+
+    #delay {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      color: #00ff9c;
+      padding: 12px 18px;
+      font-size: 20px;
+      border-radius: 12px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #00ff9c88, 0 0 20px #00ff9c44;
+      z-index: 1000;
+      transition: all 0.3s ease;
+    }
+
+    .alerting {
+      color: #ff3c3c;
+      box-shadow: 0 0 12px #ff3c3caa, 0 0 24px #ff3c3c66;
+    }
+
+    .flash {
+      background-color: #2e0000;
+    }
+</style>
+<div id="delay">Active</div>
+<script>
+    let last = performance.now();
+    const delayBox = document.getElementById('delay');
+    let flash = false;
+
+    function loop(now) {
+      const diff = now - last;
+
+      if (diff > 200) {
+        // Delay threshold exceeded (200ms = ideal frame delay)
+        const secs = (diff / 1000).toFixed(3);
+        delayBox.textContent = `🔴 Delay: ${secs}s`;
+        delayBox.classList.add('alerting');
+
+        if (!flash) {
+          document.body.classList.toggle('flash');
+          flash = true;
+        }
+      } else {
+        delayBox.textContent = `✅ Active`;
+        delayBox.classList.remove('alerting');
+        flash = false;
+        document.body.classList.remove('flash');
+        last = now; // Only reset time when normal
+      }
+
+      requestAnimationFrame(loop);
+    }
+
+    requestAnimationFrame(loop);
+  </script>
+
+</body>
+</html>
