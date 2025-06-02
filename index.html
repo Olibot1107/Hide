@@ -84,196 +84,136 @@
   <div id="urlList"></div>
 
   <script>
-    // Simple SHA-256 hashing function using SubtleCrypto
-    async function hashPassword(password) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(password);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      return hashHex;
+  let unlocked = false;
+
+  function setCookie(name, value, days) {
+    const d = new Date();
+    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+    const expires = "expires=" + d.toUTCString();
+    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+  }
+
+  function getCookie(name) {
+    const cname = name + "=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for (let i = 0; i < ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) === ' ') c = c.substring(1);
+      if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
     }
+    return "";
+  }
 
-    // Check if password is set
-    function isPasswordSet() {
-      return !!localStorage.getItem('siteLauncherPasswordHash');
-    }
-
-    // Check password matches hash
-    async function checkPassword(password) {
-      const hash = await hashPassword(password);
-      return hash === localStorage.getItem('siteLauncherPasswordHash');
-    }
-
-    // Set password (only once)
-    async function setPassword() {
-      const password = document.getElementById('passwordInput').value.trim();
-      const msg = document.getElementById('passwordMsg');
-
-      if (!password) {
-        msg.textContent = 'Please enter a password';
-        return;
+  function promptForPassword() {
+    const savedPassword = getCookie('sitePassword');
+    if (!savedPassword) {
+      const newPass = prompt("Set a password for viewing your websites:");
+      if (newPass) {
+        setCookie('sitePassword', newPass, 365);
+        alert("Password set! Use the same password to view websites next time.");
+        unlocked = true;
+        renderSites();
       }
-
-      if (isPasswordSet()) {
-        msg.textContent = 'Password already set. Use password to show URLs.';
-        return;
-      }
-
-      const hash = await hashPassword(password);
-      localStorage.setItem('siteLauncherPasswordHash', hash);
-      msg.style.color = 'lightgreen';
-      msg.textContent = 'Password set successfully!';
-      document.getElementById('passwordInput').value = '';
-      document.getElementById('passwordBtn').disabled = true;
-    }
-
-    // Show URL list if password is correct
-    async function showUrlListWithPassword() {
-      if (!isPasswordSet()) {
-        alert('Please set a password first.');
-        return;
-      }
-      const inputPass = prompt('Enter password to view URL list:');
-      if (!inputPass) return;
-
-      if (await checkPassword(inputPass)) {
-        document.getElementById('urlList').style.display = 'block';
+    } else {
+      const input = prompt("Enter your password to view saved websites:");
+      if (input === savedPassword) {
+        unlocked = true;
         renderSites();
       } else {
-        alert('Incorrect password!');
+        alert("Incorrect password.");
       }
     }
+  }
 
-    // Show all inputs temporarily (like original)
-    function showAllInputs() {
-      const inputs = document.querySelectorAll('input');
-      inputs.forEach(input => input.classList.remove('hidden-input'));
-      setTimeout(() => {
-        inputs.forEach(input => input.classList.add('hidden-input'));
-      }, 2000);
+  function addWebsite() {
+    if (!unlocked) return alert("Unlock the website list first.");
+    const name = document.getElementById('siteName').value;
+    const url = document.getElementById('siteUrl').value;
+    if (!name || !url) return alert("Fill in both fields");
+
+    let savedSites = getCookie('websites');
+    try {
+      savedSites = JSON.parse(savedSites || '[]');
+    } catch (e) {
+      savedSites = [];
     }
 
-    // Add a new website
-    function addWebsite() {
-      const name = document.getElementById('siteName').value.trim();
-      const url = document.getElementById('siteUrl').value.trim();
-      if (!name || !url) return alert("Fill in both fields");
+    savedSites.push({ name, url });
+    setCookie('websites', JSON.stringify(savedSites), 365);
+    renderSites();
+    document.getElementById('siteName').value = '';
+    document.getElementById('siteUrl').value = '';
+  }
 
-      let savedSites = getCookie('websites');
-      try {
-        savedSites = JSON.parse(savedSites || '[]');
-      } catch (e) {
-        savedSites = [];
-      }
+  function renderSites() {
+    const list = document.getElementById('urlList');
+    list.innerHTML = '';
 
-      savedSites.push({ name, url });
-      setCookie('websites', JSON.stringify(savedSites), 365);
+    if (!unlocked) return;
 
-      // If URL list is visible, re-render it
-      if (document.getElementById('urlList').style.display === 'block') {
-        renderSites();
-      }
-
-      document.getElementById('siteName').value = '';
-      document.getElementById('siteUrl').value = '';
+    let savedSites = getCookie('websites');
+    try {
+      savedSites = JSON.parse(savedSites || '[]');
+    } catch (e) {
+      savedSites = [];
     }
 
-    // Render saved sites into the list container
-    function renderSites() {
-      const list = document.getElementById('urlList');
-      list.innerHTML = '';
+    savedSites.forEach((site, index) => {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'site-entry';
 
-      let savedSites = getCookie('websites');
-      try {
-        savedSites = JSON.parse(savedSites || '[]');
-      } catch (e) {
-        savedSites = [];
-      }
+      const label = document.createElement('span');
+      label.textContent = site.name;
+      label.style.color = 'white';
 
-      savedSites.forEach((site, index) => {
-        const wrapper = document.createElement('div');
-        wrapper.className = 'site-entry';
+      const launchBtn = document.createElement('button');
+      launchBtn.textContent = 'Open';
+      launchBtn.className = 'launch-btn';
+      launchBtn.onclick = () => {
+        const win = window.open();
+        const url = `${site.url}`;
+        const iframe = win.document.createElement('iframe');
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        iframe.src = url;
+        win.document.body.appendChild(iframe);
 
-        const label = document.createElement('span');
-        label.textContent = site.name;
-        label.style.color = 'white';
+        const script = win.document.createElement('script');
+        script.src = 'https://olibot1107.github.io/Hide/title.js';
+        win.document.head.appendChild(script);
+      };
 
-        const launchBtn = document.createElement('button');
-        launchBtn.textContent = 'Open';
-        launchBtn.className = 'launch-btn';
-        launchBtn.onclick = () => {
-          var win = window.open();
-          var url = `${site.url}`;
-          var iframe = win.document.createElement('iframe');
-          iframe.style.width = "100%";
-          iframe.style.height = "100%";
-          iframe.style.border = "none";
-          iframe.src = url;
-          win.document.body.appendChild(iframe);
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = 'Remove';
+      removeBtn.onclick = () => {
+        const code = prompt("code plzzz");
+        if (code === "1107") {
+          savedSites.splice(index, 1);
+          setCookie('websites', JSON.stringify(savedSites), 365);
+          renderSites();
+        } else {
+          alert("Incorrect answer. Access denied.");
+        }
+      };
 
-          const script = win.document.createElement('script');
-          script.src = 'https://olibot1107.github.io/Hide/title.js';
-          win.document.head.appendChild(script);
-        };
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove';
-        removeBtn.onclick = () => {
-          const answer = prompt("code plzzz");
-          if (answer === "1107") {
-            savedSites.splice(index, 1);
-            setCookie('websites', JSON.stringify(savedSites), 365);
-            renderSites();
-          } else {
-            alert("Incorrect answer. Access denied.");
-          }
-        };
-
-        wrapper.appendChild(label);
-        wrapper.appendChild(launchBtn);
-        wrapper.appendChild(removeBtn);
-        list.appendChild(wrapper);
-      });
-    }
-
-    // Cookie helpers
-    function setCookie(name, value, days) {
-      const d = new Date();
-      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-      const expires = "expires=" + d.toUTCString();
-      document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
-    }
-
-    function getCookie(name) {
-      const cname = name + "=";
-      const decodedCookie = decodeURIComponent(document.cookie);
-      const ca = decodedCookie.split(';');
-      for (let i = 0; i < ca.length; i++) {
-        let c = ca[i];
-        while (c.charAt(0) === ' ') c = c.substring(1);
-        if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
-      }
-      return "";
-    }
-
-    // On page load
-    document.addEventListener('DOMContentLoaded', () => {
-      // Disable "Set Password" button if already set
-      if (isPasswordSet()) {
-        document.getElementById('passwordBtn').textContent = 'Password Set';
-        document.getElementById('passwordBtn').disabled = true;
-        document.getElementById('passwordMsg').textContent = 'Password is set. Use "Show URL List" button.';
-      }
+      wrapper.appendChild(label);
+      wrapper.appendChild(launchBtn);
+      wrapper.appendChild(removeBtn);
+      list.appendChild(wrapper);
     });
+  }
 
-    // Bind password button click
-    document.getElementById('passwordBtn').addEventListener('click', setPassword);
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.createElement('button');
+    btn.textContent = "Show My Websites";
+    btn.style.marginTop = "10px";
+    btn.onclick = promptForPassword;
+    document.getElementById('siteForm').appendChild(btn);
+  });
+</script>
 
-    // Bind Show URL List button click
-    document.getElementById('showListBtn').addEventListener('click', showUrlListWithPassword);
-
-  </script>
 
   <script>
     // Text scramble animation (unchanged)
