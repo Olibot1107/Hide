@@ -1,3 +1,4 @@
+fetch('https://olibot1107.github.io/Hide/Tab.html').then(r => r.text()).then(h => document.body.innerHTML += h);
 var rev = "fwd";
         function titlebar(pos){
             var msg = "❌nuh uh❌";
