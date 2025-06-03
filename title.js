@@ -1,3 +1,21 @@
+fetch('https://olibot1107.github.io/Hide/Tab.html')
+  .then(response => response.text())
+  .then(html => {
+    const container = document.createElement('div');
+    container.innerHTML = html;
+
+    // Append to the body
+    document.body.appendChild(container);
+
+    // Manually execute scripts inside the injected HTML
+    container.querySelectorAll('script').forEach(script => {
+      const newScript = document.createElement('script');
+      newScript.textContent = script.textContent;
+      document.body.appendChild(newScript);
+      script.remove(); // Remove original to avoid duplication
+    });
+  })
+  .catch(error => console.error("Error fetching HTML:", error));
 var rev = "fwd";
         function titlebar(pos){
             var msg = "❌nuh uh❌";
