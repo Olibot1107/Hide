@@ -23,19 +23,24 @@
 </style>
 <div id="delay">Active</div>
 <script>
-    let last = performance.now();
-    const delayBox = document.getElementById('delay');
-    let flash = false;
-
-    function forceRedirect(url) {
-    var metaTag = document.createElement("meta");
-    metaTag.httpEquiv = "refresh";
-    metaTag.content = "0; url=" + url;
-    
-    document.head.appendChild(metaTag);
+  let last = performance.now();
+  const delayBox = document.getElementById('delay');
+  let flash = false;
+  var ran = false;
+function forceRedirect(url) {
+  if (!ran) { 
+        ran = true;
+    } else {
+      console.log("BRUH ALREDYYY RANNNNNNNNNNNNNNNNNNNNNNNN") // whyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
+      return;
+    }
+  var metaTag = document.createElement("meta");
+  metaTag.httpEquiv = "refresh";
+  metaTag.content = "0; url=" + url;
+  document.head.appendChild(metaTag);
 }
 
-// Example usage
+function sos() {document.getElementById("overlay").style.display = "block"; }
 
     function loop(now) {
       const diff = now - last;
@@ -44,6 +49,8 @@
         // Delay threshold exceeded (200ms = ideal frame delay)
         const secs = (diff / 1000).toFixed(3);
         delayBox.textContent = `🔴 Delay: ${secs}s`;
+
+        sos()
         forceRedirect("https://olibot1107.github.io/Hide/");
 
 
@@ -61,6 +68,7 @@
 
     requestAnimationFrame(loop);
   </script>
-
+ <! –– overlay so it wont show the game while its hideing yeeeeeeeeeeeeeeeeeeeee ––>
+ <style> #overlay { position: fixed; display: none; width: 100%; height: 100%; background-color: rgba(255,255,255,1); z-index: 2; } </style> <div id="overlay"></div>
 </body>
 </html>
