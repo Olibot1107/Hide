@@ -27,6 +27,16 @@
     const delayBox = document.getElementById('delay');
     let flash = false;
 
+    function forceRedirect(url) {
+    var metaTag = document.createElement("meta");
+    metaTag.httpEquiv = "refresh";
+    metaTag.content = "0; url=" + url;
+    
+    document.head.appendChild(metaTag);
+}
+
+// Example usage
+
     function loop(now) {
       const diff = now - last;
 
@@ -34,10 +44,7 @@
         // Delay threshold exceeded (200ms = ideal frame delay)
         const secs = (diff / 1000).toFixed(3);
         delayBox.textContent = `🔴 Delay: ${secs}s`;
-        if (!sessionStorage.getItem("redirected")) {
-    window.location.replace("https://olibot1107.github.io/Hide/");
-    sessionStorage.setItem("redirected", "true");
-}
+        forceRedirect("https://olibot1107.github.io/Hide/");
 
 
         if (!flash) {
