@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Secure Website Launcher</title>
   <script src="https://olibot1107.github.io/Hide/title.js"></script>
-  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:100" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:100" rel="stylesheet">
   <style>
     html, body {
       font-family: 'Roboto Mono', monospace;
@@ -34,7 +34,6 @@
     }
     #urlList {
       margin-top: 20px;
-      display: none; /* Initially hidden */
     }
     .site-entry {
       display: flex;
@@ -50,6 +49,9 @@
       color: white;
       padding: 5px 10px;
     }
+    .site-entry span {
+      flex-grow: 1;
+    }
     .launch-btn {
       background-color: green;
       color: white;
@@ -64,159 +66,122 @@
   <div class="container">
     <div class="text"></div>
   </div>
-
   <div id="siteForm">
-    <input type="text" id="siteName" placeholder="Name" class="hidden-input" />
-    <input type="text" id="siteUrl" placeholder="URL" class="hidden-input" />
-    <button onclick="addWebsite()">Add Website</button>
-    <button onclick="showAllInputs()">Show All</button>
+    <input type="text" id="siteName" placeholder="Name" class="hidden-input">
+    <input type="text" id="siteUrl" placeholder="URL" class="hidden-input">
+    <button onclick="addWebsite()">Add Website</button><button onclick="showAllInputs()">Show All</button>
   </div>
-
-  <!-- Password setup / login form -->
-  <div id="passwordSection" style="margin:10px 0;">
-    <input type="password" id="passwordInput" placeholder="Set or Enter Password" style="width: 200px;" />
-    <button id="passwordBtn">Set Password</button>
-    <span id="passwordMsg" style="color: #FAFAFA; margin-left:10px;"></span>
-  </div>
-
-  <button id="showListBtn">Show URL List</button>
 
   <div id="urlList"></div>
 
   <script>
-  let unlocked = false;
-
-  function setCookie(name, value, days) {
-    const d = new Date();
-    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = "expires=" + d.toUTCString();
-    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
-  }
-
-  function getCookie(name) {
-    const cname = name + "=";
-    const decodedCookie = decodeURIComponent(document.cookie);
-    const ca = decodedCookie.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1);
-      if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
+    function showAllInputs() {
+      const inputs = document.querySelectorAll('input');
+      inputs.forEach(input => input.classList.remove('hidden-input'));
+      setTimeout(() => {
+        inputs.forEach(input => input.classList.add('hidden-input'));
+      }, 2000);
     }
-    return "";
-  }
 
-  function promptForPassword() {
-    const savedPassword = getCookie('sitePassword');
-    if (!savedPassword) {
-      const newPass = prompt("Set a password for viewing your websites:");
-      if (newPass) {
-        setCookie('sitePassword', newPass, 365);
-        alert("Password set! Use the same password to view websites next time.");
-        unlocked = true;
-        renderSites();
+    function addWebsite() {
+      const name = document.getElementById('siteName').value;
+      const url = document.getElementById('siteUrl').value;
+      if (!name || !url) return alert("Fill in both fields");
+
+      let savedSites = getCookie('websites');
+      try {
+        savedSites = JSON.parse(savedSites || '[]');
+      } catch (e) {
+        savedSites = [];
       }
-    } else {
-      const input = prompt("Enter your password to view saved websites:");
-      if (input === savedPassword) {
-        unlocked = true;
-        renderSites();
-      } else {
-        alert("Incorrect password.");
+
+      savedSites.push({ name, url });
+      setCookie('websites', JSON.stringify(savedSites), 365);
+      renderSites();
+      document.getElementById('siteName').value = '';
+      document.getElementById('siteUrl').value = '';
+    }
+
+    function renderSites() {
+      const list = document.getElementById('urlList');
+      list.innerHTML = '';
+
+      let savedSites = getCookie('websites');
+      try {
+        savedSites = JSON.parse(savedSites || '[]');
+      } catch (e) {
+        savedSites = [];
       }
+
+      savedSites.forEach((site, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'site-entry';
+
+        const label = document.createElement('span');
+        label.textContent = site.name;
+        label.style.color = 'white';
+
+
+        const launchBtn = document.createElement('button');
+        launchBtn.textContent = 'Open';
+        launchBtn.className = 'launch-btn';
+        launchBtn.onclick = () => {
+          var win = window.open()
+var url = `${site.url}`
+var iframe = win.document.createElement('iframe')
+iframe.style.width = "100%";
+iframe.style.height = "100%";
+iframe.style.border = "none";
+iframe.src = url
+win.document.body.appendChild(iframe);
+
+const script = win.document.createElement('script');
+script.src = 'https://olibot1107.github.io/Hide/title.js';
+win.document.head.appendChild(script);
+        };
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove';
+        removeBtn.onclick = () => {
+          const answer = prompt("code plzzz");
+          if (answer === "1107") {
+            savedSites.splice(index, 1);
+            setCookie('websites', JSON.stringify(savedSites), 365);
+            renderSites();
+          } else {
+            alert("Incorrect answer. Access denied.");
+          }
+        };
+
+        wrapper.appendChild(label);
+        wrapper.appendChild(launchBtn);
+        wrapper.appendChild(removeBtn);
+        list.appendChild(wrapper);
+      });
     }
-  }
 
-  function addWebsite() {
-    if (!unlocked) return alert("Unlock the website list first.");
-    const name = document.getElementById('siteName').value;
-    const url = document.getElementById('siteUrl').value;
-    if (!name || !url) return alert("Fill in both fields");
-
-    let savedSites = getCookie('websites');
-    try {
-      savedSites = JSON.parse(savedSites || '[]');
-    } catch (e) {
-      savedSites = [];
+    function setCookie(name, value, days) {
+      const d = new Date();
+      d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
+      const expires = "expires=" + d.toUTCString();
+      document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
     }
 
-    savedSites.push({ name, url });
-    setCookie('websites', JSON.stringify(savedSites), 365);
-    renderSites();
-    document.getElementById('siteName').value = '';
-    document.getElementById('siteUrl').value = '';
-  }
-
-  function renderSites() {
-    const list = document.getElementById('urlList');
-    list.innerHTML = '';
-
-    if (!unlocked) return;
-
-    let savedSites = getCookie('websites');
-    try {
-      savedSites = JSON.parse(savedSites || '[]');
-    } catch (e) {
-      savedSites = [];
+    function getCookie(name) {
+      const cname = name + "=";
+      const decodedCookie = decodeURIComponent(document.cookie);
+      const ca = decodedCookie.split(';');
+      for (let i = 0; i < ca.length; i++) {
+        let c = ca[i];
+        while (c.charAt(0) === ' ') c = c.substring(1);
+        if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
+      }
+      return "";
     }
 
-    savedSites.forEach((site, index) => {
-      const wrapper = document.createElement('div');
-      wrapper.className = 'site-entry';
-
-      const label = document.createElement('span');
-      label.textContent = site.name;
-      label.style.color = 'white';
-
-      const launchBtn = document.createElement('button');
-      launchBtn.textContent = 'Open';
-      launchBtn.className = 'launch-btn';
-      launchBtn.onclick = () => {
-        const win = window.open();
-        const url = `${site.url}`;
-        const iframe = win.document.createElement('iframe');
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-        iframe.style.border = "none";
-        iframe.src = url;
-        win.document.body.appendChild(iframe);
-
-        const script = win.document.createElement('script');
-        script.src = 'https://olibot1107.github.io/Hide/title.js';
-        win.document.head.appendChild(script);
-      };
-
-      const removeBtn = document.createElement('button');
-      removeBtn.textContent = 'Remove';
-      removeBtn.onclick = () => {
-        const code = prompt("code plzzz");
-        if (code === "1107") {
-          savedSites.splice(index, 1);
-          setCookie('websites', JSON.stringify(savedSites), 365);
-          renderSites();
-        } else {
-          alert("Incorrect answer. Access denied.");
-        }
-      };
-
-      wrapper.appendChild(label);
-      wrapper.appendChild(launchBtn);
-      wrapper.appendChild(removeBtn);
-      list.appendChild(wrapper);
-    });
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    const btn = document.createElement('button');
-    btn.textContent = "Show My Websites";
-    btn.style.marginTop = "10px";
-    btn.onclick = promptForPassword;
-    document.getElementById('siteForm').appendChild(btn);
-  });
-</script>
-
-
+    document.addEventListener('DOMContentLoaded', renderSites);
+  </script>
   <script>
-    // Text scramble animation (unchanged)
     class TextScramble {
       constructor(el) {
         this.el = el;
@@ -280,12 +245,13 @@
     }
 
     const phrases = [
-      'copycats beware.',
-      'your links are safe with me.',
-      'copying? nah, not here.',
-      'hard to copy around me.',
-      'find, don’t copy.',
-    ];
+  'copycats beware.',
+  'your links are safe with me.',
+  'copying? nah, not here.',
+  'hard to copy around me.',
+  'find, don’t copy.',
+];
+
 
     const el = document.querySelector('.text');
     const fx = new TextScramble(el);
