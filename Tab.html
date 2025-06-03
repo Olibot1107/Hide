@@ -5,14 +5,6 @@
       box-sizing: border-box;
     }
 
-    body {
-      height: 100vh;
-      background: #0f0f0f;
-      font-family: 'Segoe UI', sans-serif;
-      overflow: hidden;
-      transition: background-color 0.4s ease;
-    }
-
     #delay {
       position: fixed;
       top: 20px;
@@ -28,15 +20,6 @@
       z-index: 1000;
       transition: all 0.3s ease;
     }
-
-    .alerting {
-      color: #ff3c3c;
-      box-shadow: 0 0 12px #ff3c3caa, 0 0 24px #ff3c3c66;
-    }
-
-    .flash {
-      background-color: #2e0000;
-    }
 </style>
 <div id="delay">Active</div>
 <script>
@@ -51,17 +34,13 @@
         // Delay threshold exceeded (200ms = ideal frame delay)
         const secs = (diff / 1000).toFixed(3);
         delayBox.textContent = `🔴 Delay: ${secs}s`;
-        delayBox.classList.add('alerting');
 
         if (!flash) {
-          document.body.classList.toggle('flash');
           flash = true;
         }
       } else {
         delayBox.textContent = `✅ Active`;
-        delayBox.classList.remove('alerting');
         flash = false;
-        document.body.classList.remove('flash');
         last = now; // Only reset time when normal
       }
 
