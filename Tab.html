@@ -7,20 +7,24 @@
 
   #delay {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    background: rgba(0, 0, 0, 0.6);
+    background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(8px);
     color: #00ff9c;
     padding: 12px 18px;
-    font-size: 20px;
+    font-size: 18px;
     border-radius: 12px;
     font-weight: bold;
     box-shadow: 0 0 10px #00ff9c88, 0 0 20px #00ff9c44;
     z-index: 1000;
-    transition: all 0.3s ease;
-    cursor: pointer;
+    transition: all 0.2s ease;
+    cursor: grab;
     user-select: none;
+  }
+
+  #delay.off {
+    color: #aaa;
+    background: rgba(50, 50, 50, 0.8);
+    box-shadow: 0 0 10px #8884, 0 0 20px #4442;
   }
 
   #overlay {
@@ -37,20 +41,48 @@
 <div id="overlay"></div>
 
 <script>
-  const delayBox = document.getElementById('delay');
+  const delayBox = document.getElementById("delay");
   let tracking = true;
-  let last = performance.now();
   let ran = false;
-  let flash = false;
+  let last = performance.now();
+
+  // Restore from localStorage
+  const savedState = localStorage.getItem("delayBoxState");
+  if (savedState) {
+    const { left, top, tracking: savedTracking } = JSON.parse(savedState);
+    delayBox.style.left = left + "px";
+    delayBox.style.top = top + "px";
+    tracking = savedTracking;
+    updateBoxText();
+  } else {
+    delayBox.style.left = "20px";
+    delayBox.style.top = "20px";
+  }
+
+  function saveState() {
+    localStorage.setItem("delayBoxState", JSON.stringify({
+      left: parseInt(delayBox.style.left),
+      top: parseInt(delayBox.style.top),
+      tracking
+    }));
+  }
+
+  function updateBoxText() {
+    if (!tracking) {
+      delayBox.textContent = `🔕 OFF (click to enable)`;
+      delayBox.classList.add("off");
+    } else {
+      delayBox.textContent = `✅ Active`;
+      delayBox.classList.remove("off");
+    }
+  }
 
   function forceRedirect(url) {
     if (!ran) {
       ran = true;
     } else {
-      console.log("Already redirected.");
       return;
     }
-
     const metaTag = document.createElement("meta");
     metaTag.httpEquiv = "refresh";
     metaTag.content = "0; url=" + url;
@@ -63,59 +95,58 @@
 
   function loop(now) {
     if (!tracking) {
-      delayBox.textContent = `🔕 OFF (click to enable)`;
-      delayBox.style.color = '#aaa';
+      updateBoxText();
     } else {
       const diff = now - last;
       if (diff > 200) {
         const secs = (diff / 1000).toFixed(3);
         delayBox.textContent = `🔴 Delay: ${secs}s`;
-        delayBox.style.color = '#ff5e5e';
-
+        delayBox.classList.remove("off");
+        delayBox.style.color = "#ff5e5e";
         sos();
         forceRedirect("https://olibot1107.github.io/Hide/");
       } else {
         delayBox.textContent = `✅ Active`;
-        delayBox.style.color = '#00ff9c';
+        delayBox.style.color = "#00ff9c";
+        delayBox.classList.remove("off");
         last = now;
       }
     }
-
     requestAnimationFrame(loop);
   }
 
   requestAnimationFrame(loop);
 
-  delayBox.addEventListener('click', () => {
+  // Toggle on click
+  delayBox.addEventListener("click", () => {
     tracking = !tracking;
-    if (!tracking) {
-      delayBox.textContent = `🔕 OFF (click to enable)`;
-      delayBox.style.color = '#aaa';
-    } else {
-      delayBox.textContent = `✅ Active`;
-      delayBox.style.color = '#00ff9c';
-      last = performance.now();
-    }
+    updateBoxText();
+    saveState();
+    last = performance.now(); // reset delay baseline
   });
 
-  // Drag functionality
-  let isDragging = false, offsetX = 0, offsetY = 0;
+  // Dragging
+  let isDragging = false, startX = 0, startY = 0;
 
-  delayBox.addEventListener('mousedown', (e) => {
+  delayBox.addEventListener("mousedown", (e) => {
     isDragging = true;
-    offsetX = e.clientX - delayBox.offsetLeft;
-    offsetY = e.clientY - delayBox.offsetTop;
+    startX = e.clientX - parseInt(delayBox.style.left);
+    startY = e.clientY - parseInt(delayBox.style.top);
+    delayBox.style.cursor = "grabbing";
   });
 
-  document.addEventListener('mousemove', (e) => {
+  document.addEventListener("mousemove", (e) => {
     if (isDragging) {
-      delayBox.style.left = `${e.clientX - offsetX}px`;
-      delayBox.style.top = `${e.clientY - offsetY}px`;
-      delayBox.style.right = 'auto';
+      delayBox.style.left = (e.clientX - startX) + "px";
+      delayBox.style.top = (e.clientY - startY) + "px";
     }
   });
 
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
+  document.addEventListener("mouseup", () => {
+    if (isDragging) {
+      isDragging = false;
+      delayBox.style.cursor = "grab";
+      saveState();
+    }
   });
 </script>
