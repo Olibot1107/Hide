@@ -11,14 +11,16 @@
     backdrop-filter: blur(8px);
     color: #00ff9c;
     padding: 12px 18px;
-    font-size: 18px;
+    font-size: 17px;
     border-radius: 12px;
     font-weight: bold;
     box-shadow: 0 0 10px #00ff9c88, 0 0 20px #00ff9c44;
     z-index: 1000;
     transition: all 0.2s ease;
     cursor: grab;
+    white-space: pre-line;
     user-select: none;
+    max-width: 300px;
   }
 
   #delay.off {
@@ -37,18 +39,17 @@
   }
 </style>
 
-<div id="delay">✅ Active</div>
+<div id="delay">Loading...</div>
 <div id="overlay"></div>
 
 <script>
   const delayBox = document.getElementById("delay");
-  const TRIGGER_DELAY = 200; // ms
   let tracking = true;
   let ran = false;
   let last = performance.now();
   let fpsAvg = 60;
 
-  // Restore saved position and toggle state
+  // Load saved state
   const saved = localStorage.getItem("delayBoxState");
   if (saved) {
     const { left, top, tracking: savedTracking } = JSON.parse(saved);
@@ -69,12 +70,14 @@
     }));
   }
 
-  function updateBoxText() {
+  function updateBoxText(extra = "") {
+    const dynamicTrigger = Math.max(1000 / fpsAvg * 1.2, 100);
+    const delayInfo = `FPS: ${fpsAvg} | Trigger: ${(dynamicTrigger / 1000).toFixed(2)}s`;
     if (!tracking) {
-      delayBox.textContent = `🔕 OFF (click to enable)`;
+      delayBox.textContent = `🔕 OFF (click to enable)\n${delayInfo}`;
       delayBox.classList.add("off");
     } else {
-      delayBox.textContent = `✅ Active`;
+      delayBox.textContent = `✅ Active${extra}\n${delayInfo}`;
       delayBox.classList.remove("off");
     }
   }
@@ -95,28 +98,27 @@
   }
 
   function loop(now) {
+    const diff = now - last;
+    const fps = Math.round(1000 / diff);
+    fpsAvg = Math.round(fpsAvg * 0.9 + fps * 0.1); // smoothed
+
+    const dynamicTrigger = Math.max(1000 / fpsAvg * 1.2, 100); // min 100ms, dynamic
+
     if (!tracking) {
       updateBoxText();
       requestAnimationFrame(loop);
       return;
     }
 
-    const diff = now - last;
-    const fps = Math.round(1000 / diff);
-    fpsAvg = Math.round(fpsAvg * 0.9 + fps * 0.1); // smooth avg
-
-    if (diff > TRIGGER_DELAY) {
+    if (diff > dynamicTrigger) {
       const secs = (diff / 1000).toFixed(3);
-      delayBox.textContent = `🔴 Delay: ${secs}s (limit: ${(TRIGGER_DELAY / 1000).toFixed(3)}s)\nFPS: ${fpsAvg}`;
+      updateBoxText(`\n🔴 Delay: ${secs}s`);
       delayBox.style.color = "#ff5e5e";
-      delayBox.classList.remove("off");
-
       sos();
       forceRedirect("https://olibot1107.github.io/Hide/");
     } else {
-      delayBox.textContent = `✅ Active\nFPS: ${fpsAvg}`;
       delayBox.style.color = "#00ff9c";
-      delayBox.classList.remove("off");
+      updateBoxText();
       last = now;
     }
 
@@ -125,12 +127,12 @@
 
   requestAnimationFrame(loop);
 
-  // Toggle tracking
+  // Click to toggle
   delayBox.addEventListener("click", () => {
     tracking = !tracking;
-    updateBoxText();
     saveState();
     last = performance.now();
+    updateBoxText();
   });
 
   // Dragging
