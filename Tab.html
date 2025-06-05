@@ -42,14 +42,16 @@
 
 <script>
   const delayBox = document.getElementById("delay");
+  const TRIGGER_DELAY = 200; // ms
   let tracking = true;
   let ran = false;
   let last = performance.now();
+  let fpsAvg = 60;
 
-  // Restore from localStorage
-  const savedState = localStorage.getItem("delayBoxState");
-  if (savedState) {
-    const { left, top, tracking: savedTracking } = JSON.parse(savedState);
+  // Restore saved position and toggle state
+  const saved = localStorage.getItem("delayBoxState");
+  if (saved) {
+    const { left, top, tracking: savedTracking } = JSON.parse(saved);
     delayBox.style.left = left + "px";
     delayBox.style.top = top + "px";
     tracking = savedTracking;
@@ -80,9 +82,8 @@
   function forceRedirect(url) {
     if (!ran) {
       ran = true;
-    } else {
-      return;
-    }
+    } else return;
+
     const metaTag = document.createElement("meta");
     metaTag.httpEquiv = "refresh";
     metaTag.content = "0; url=" + url;
@@ -96,33 +97,40 @@
   function loop(now) {
     if (!tracking) {
       updateBoxText();
-    } else {
-      const diff = now - last;
-      if (diff > 200) {
-        const secs = (diff / 1000).toFixed(3);
-        delayBox.textContent = `🔴 Delay: ${secs}s`;
-        delayBox.classList.remove("off");
-        delayBox.style.color = "#ff5e5e";
-        sos();
-        forceRedirect("https://olibot1107.github.io/Hide/");
-      } else {
-        delayBox.textContent = `✅ Active`;
-        delayBox.style.color = "#00ff9c";
-        delayBox.classList.remove("off");
-        last = now;
-      }
+      requestAnimationFrame(loop);
+      return;
     }
+
+    const diff = now - last;
+    const fps = Math.round(1000 / diff);
+    fpsAvg = Math.round(fpsAvg * 0.9 + fps * 0.1); // smooth avg
+
+    if (diff > TRIGGER_DELAY) {
+      const secs = (diff / 1000).toFixed(3);
+      delayBox.textContent = `🔴 Delay: ${secs}s (limit: ${(TRIGGER_DELAY / 1000).toFixed(3)}s)\nFPS: ${fpsAvg}`;
+      delayBox.style.color = "#ff5e5e";
+      delayBox.classList.remove("off");
+
+      sos();
+      forceRedirect("https://olibot1107.github.io/Hide/");
+    } else {
+      delayBox.textContent = `✅ Active\nFPS: ${fpsAvg}`;
+      delayBox.style.color = "#00ff9c";
+      delayBox.classList.remove("off");
+      last = now;
+    }
+
     requestAnimationFrame(loop);
   }
 
   requestAnimationFrame(loop);
 
-  // Toggle on click
+  // Toggle tracking
   delayBox.addEventListener("click", () => {
     tracking = !tracking;
     updateBoxText();
     saveState();
-    last = performance.now(); // reset delay baseline
+    last = performance.now();
   });
 
   // Dragging
