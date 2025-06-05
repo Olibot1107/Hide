@@ -59,7 +59,7 @@
     fps = 1000 / avgFrameTime;
 
     const expectedFrameTime = 1000 / fps;
-    const maxAllowedDelay = expectedFrameTime * 2.5; // allow 2.5x frame duration
+    const maxAllowedDelay = expectedFrameTime * 6; // allow 2.5x frame duration
 
     if (diff > maxAllowedDelay) {
       const secs = (diff / 1000).toFixed(3);
