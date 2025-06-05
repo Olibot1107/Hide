@@ -1,44 +1,58 @@
 <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    #delay {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(8px);
-      color: #00ff9c;
-      padding: 12px 18px;
-      font-size: 20px;
-      border-radius: 12px;
-      font-weight: bold;
-      box-shadow: 0 0 10px #00ff9c88, 0 0 20px #00ff9c44;
-      z-index: 1000;
-      transition: all 0.3s ease;
-    }
+  #delay {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    color: #00ff9c;
+    padding: 12px 18px;
+    font-size: 20px;
+    border-radius: 12px;
+    font-weight: bold;
+    box-shadow: 0 0 10px #00ff9c88, 0 0 20px #00ff9c44;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    cursor: move;
+    user-select: none;
+  }
+
+  #overlay {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 1);
+    z-index: 2;
+  }
 </style>
+
 <div id="delay">Active</div>
+<div id="overlay"></div>
+
 <script>
-  const delayBox = document.getElementById('delay');
+  const wait = ms => new Promise(res => setTimeout(res, ms));
   let last = performance.now();
-  let fps = 60;
-  let frameTimes = [];
+  const delayBox = document.getElementById('delay');
   let flash = false;
   let ran = false;
-  let delayStrikes = 0;
+  let visible = true;
 
   function forceRedirect(url) {
     if (!ran) {
       ran = true;
     } else {
-      console.log("Already redirected.");
+      console.log("Already ran redirect");
       return;
     }
-    const metaTag = document.createElement("meta");
+
+    var metaTag = document.createElement("meta");
     metaTag.httpEquiv = "refresh";
     metaTag.content = "0; url=" + url;
     document.head.appendChild(metaTag);
@@ -51,29 +65,15 @@
   function loop(now) {
     const diff = now - last;
 
-    // FPS calculation
-    frameTimes.push(diff);
-    if (frameTimes.length > 60) frameTimes.shift();
-    const avgFrameTime = frameTimes.reduce((a, b) => a + b, 0) / frameTimes.length;
-    fps = 1000 / avgFrameTime;
-
-    const expectedFrameTime = 1000 / fps;
-    const maxAllowedDelay = expectedFrameTime * 5;
-
-    if (diff > maxAllowedDelay) {
-      delayStrikes++;
+    if (diff > 500) {
       const secs = (diff / 1000).toFixed(3);
-      delayBox.textContent = `🟠 Warning ${delayStrikes}/3: ${secs}s`;
+      delayBox.textContent = `🔴 Delay: ${secs}s`;
 
-      if (delayStrikes >= 3) {
-        delayBox.textContent = `🔴 Delay Detected: ${secs}s`;
-        sos();
-        forceRedirect("https://olibot1107.github.io/Hide/");
-        flash = true;
-      }
+      sos();
+      forceRedirect("https://olibot1107.github.io/Hide/");
+      flash = true;
     } else {
-      delayStrikes = 0; // reset if we get a good frame
-      delayBox.textContent = `✅ Active (${Math.round(fps)} FPS)`;
+      delayBox.textContent = `✅ Active (v2)`;
       flash = false;
       last = now;
     }
@@ -82,8 +82,31 @@
   }
 
   requestAnimationFrame(loop);
+
+  // Toggle visibility on click
+  delayBox.addEventListener('click', () => {
+    visible = !visible;
+    delayBox.style.display = visible ? 'block' : 'none';
+  });
+
+  // Make it draggable
+  let offsetX = 0, offsetY = 0, isDragging = false;
+
+  delayBox.addEventListener('mousedown', (e) => {
+    isDragging = true;
+    offsetX = e.clientX - delayBox.offsetLeft;
+    offsetY = e.clientY - delayBox.offsetTop;
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (isDragging) {
+      delayBox.style.left = `${e.clientX - offsetX}px`;
+      delayBox.style.top = `${e.clientY - offsetY}px`;
+      delayBox.style.right = 'auto'; // Prevents fight between left/right
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+  });
 </script>
- <! –– overlay so it wont show the game while its hideing yeeeeeeeeeeeeeeeeeeeee ––>
- <style> #overlay { position: fixed; display: none; width: 100%; height: 100%; background-color: rgba(255,255,255,1); z-index: 2; } </style> <div id="overlay"></div>
-</body>
-</html>
