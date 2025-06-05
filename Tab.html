@@ -46,7 +46,7 @@ function sos() {document.getElementById("overlay").style.display = "block"; }
     function loop(now) {
       const diff = now - last;
 
-      if (diff > 200) {
+      if (diff > 500) {
         // Delay threshold exceeded (200ms = ideal frame delay)
         const secs = (diff / 1000).toFixed(3);
         delayBox.textContent = `🔴 Delay: ${secs}s`;

@@ -7,26 +7,55 @@
     body, html {
       margin: 0;
       height: 100%;
+      font-family: Arial, sans-serif;
     }
-    iframe {
+    #iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
+    #error {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      background: #fff;
+      color: #c00;
+      font-size: 1.5em;
+      text-align: center;
+      padding: 20px;
+    }
   </style>
 </head>
 <body>
-  <iframe id="iframe" src=""></iframe>
+  <iframe id="iframe"></iframe>
+  <div id="error">❌ Unable to load the URL.<br>The website may blocking my rizz :))))))</div>
 
   <script>
     const params = new URLSearchParams(window.location.search);
     const url = params.get("url");
 
-    if (url) {
-      let fullUrl = url.startsWith("http") ? url : "https://" + url;
-      document.getElementById("iframe").src = fullUrl;
+    if (!url) {
+      document.getElementById("error").style.display = "flex";
+      document.getElementById("error").innerText = "⚠️ No URL provided.";
     } else {
-      document.body.innerHTML = "<h1 style='text-align:center'>No URL provided.</h1>";
+      let fullUrl = url.startsWith("http") ? url : "https://" + url;
+      const iframe = document.getElementById("iframe");
+
+      // Fallback in case iframe refuses to load (not guaranteed, but helps)
+      const errorTimeout = setTimeout(() => {
+        document.getElementById("error").style.display = "flex";
+      }, 4000); // Give it 4 seconds to load
+
+      iframe.onload = () => {
+        clearTimeout(errorTimeout);
+      };
+
+      iframe.src = fullUrl;
     }
   </script>
 </body>
