@@ -189,9 +189,9 @@
 
   function updateText(diff, fps) {
     const timeOnline = formatTime(Date.now() - startTime);
-    const status = tracking ? "✅ Active" : "🔕 OFF";
+    const status = tracking ? "🟢 Active" : "🟠 OFF";
     const delay = (diff / 1000).toFixed(3);
-    const fpsText = `FPS: ${fps}\nDelay: ${delay}s\n⏱️ ${timeOnline}`;
+    const fpsText = `FPS: ${fps}\nDelay: ${delay}s\nTime: ${timeOnline}`;
     delayText.textContent = `${status}\n${fpsText}`;
     delayBox.classList.toggle("off", !tracking);
   }
@@ -283,7 +283,7 @@
   });
 
   // Buttons
-  homeBtn.onclick = () => window.location.href = "https://olibot1107.github.io/";
+  homeBtn.onclick = () => window.location.href = "https://olibot1107.github.io/Hide/";
 
   toggleBtn.onclick = () => {
     tracking = !tracking;
