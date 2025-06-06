@@ -45,18 +45,18 @@
 </head>
 <body>
 
-  <div id="delay">Loading...</div>
+  <div id="delay">Waiting for page to load...</div>
   <div id="overlay"></div>
 
   <script>
     const delayBox = document.getElementById("delay");
-    const MIN_TRIGGER = 300; // never below this (ms)
+    const MIN_TRIGGER = 300;
     let tracking = true;
     let ran = false;
     let last = performance.now();
     let fpsAvg = 60;
 
-    // Restore previous position and mode
+    // Restore saved position and state
     const saved = localStorage.getItem("delayBoxState");
     if (saved) {
       const { left, top, tracking: savedTracking } = JSON.parse(saved);
@@ -77,7 +77,7 @@
     }
 
     function calcTrigger(fps) {
-      return Math.max((30 / fps) * 260 + 250, MIN_TRIGGER); // in ms
+      return Math.max((30 / fps) * 260 + 250, MIN_TRIGGER);
     }
 
     function updateBoxText(extra = "") {
@@ -110,7 +110,6 @@
       const diff = now - last;
       const fps = 1000 / diff;
       fpsAvg = fpsAvg * 0.9 + fps * 0.1;
-
       const triggerMs = calcTrigger(fpsAvg);
 
       if (!tracking) {
@@ -133,9 +132,6 @@
       requestAnimationFrame(loop);
     }
 
-    requestAnimationFrame(loop);
-
-    // Toggle tracking mode
     delayBox.addEventListener("click", () => {
       tracking = !tracking;
       saveState();
@@ -143,7 +139,7 @@
       updateBoxText();
     });
 
-    // Dragging support (improved)
+    // Drag and move
     let isDragging = false;
     let offsetX = 0, offsetY = 0;
 
@@ -169,6 +165,39 @@
         delayBox.style.cursor = "grab";
         saveState();
       }
+    });
+
+    // === Aggressive IFRAME/Page Load Check ===
+    function waitForPageAndIframes(callback) {
+      let attempts = 0;
+      function check() {
+        attempts++;
+        const iframes = Array.from(document.getElementsByTagName('iframe'));
+        const allLoaded = iframes.every(iframe => {
+          try {
+            return iframe.contentWindow?.document?.readyState === "complete";
+          } catch {
+            return true; // cross-origin iframe
+          }
+        });
+
+        const docReady = document.readyState === "complete";
+
+        if (docReady && allLoaded) {
+          console.log("Page and all iframes ready after", attempts, "checks.");
+          callback();
+        } else {
+          delayBox.textContent = `⏳ Waiting... ${attempts}`;
+          setTimeout(check, 100);
+        }
+      }
+
+      check();
+    }
+
+    waitForPageAndIframes(() => {
+      delayBox.textContent = `✅ Ready! Initializing...`;
+      setTimeout(() => requestAnimationFrame(loop), 300); // slight delay before starting
     });
   </script>
 
