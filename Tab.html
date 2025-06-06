@@ -1,205 +1,154 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="UTF-8" />
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
 
-    #delay {
-      position: fixed;
-      background: rgba(0, 0, 0, 0.7);
-      backdrop-filter: blur(8px);
-      color: #00ff9c;
-      padding: 12px 18px;
-      font-size: 17px;
-      border-radius: 12px;
-      font-weight: bold;
-      box-shadow: 0 0 10px #00ff9c88, 0 0 20px #00ff9c44;
-      z-index: 1000;
-      transition: all 0.2s ease;
-      cursor: grab;
-      white-space: pre-line;
-      user-select: none;
-      max-width: 300px;
-    }
+  #delay {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(8px);
+    color: #00ff9c;
+    padding: 12px 18px;
+    font-size: 16px;
+    line-height: 1.5;
+    border-radius: 12px;
+    font-weight: bold;
+    box-shadow: 0 0 10px #00ff9c88, 0 0 20px #00ff9c44;
+    z-index: 1000;
+    transition: all 0.2s ease;
+    cursor: move;
+    user-select: none;
+    white-space: pre;
+  }
 
-    #delay.off {
-      color: #aaa;
-      background: rgba(50, 50, 50, 0.8);
-      box-shadow: 0 0 10px #8884, 0 0 20px #4442;
-    }
+  #delay.off {
+    color: #aaa;
+    background: rgba(50, 50, 50, 0.85);
+    box-shadow: 0 0 10px #8884, 0 0 20px #4442;
+  }
 
-    #overlay {
-      position: fixed;
-      display: none;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(255, 255, 255, 1);
-      z-index: 2;
-    }
-  </style>
-</head>
-<body>
+  #overlay {
+    position: fixed;
+    display: none;
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    z-index: 2;
+  }
+</style>
 
-  <div id="delay">Waiting for page to load...</div>
-  <div id="overlay"></div>
+<div id="delay">Loading...</div>
+<div id="overlay"></div>
 
-  <script>
-    const delayBox = document.getElementById("delay");
-    const MIN_TRIGGER = 300;
-    let tracking = true;
-    let ran = false;
-    let last = performance.now();
-    let fpsAvg = 60;
+<script>
+  const delayBox = document.getElementById("delay");
+  const overlay = document.getElementById("overlay");
 
-    // Restore saved position and state
-    const saved = localStorage.getItem("delayBoxState");
-    if (saved) {
-      const { left, top, tracking: savedTracking } = JSON.parse(saved);
-      delayBox.style.left = left + "px";
-      delayBox.style.top = top + "px";
-      tracking = savedTracking;
+  const TRIGGER_DELAY = 200;
+  const TRIGGER_SMOOTH = 4; // higher = more resistant to false triggers
+  let tracking = true;
+  let ran = false;
+  let last = performance.now();
+  let delayAvg = 0;
+  let fpsAvg = 60;
+
+  // Load saved position and state
+  const saved = localStorage.getItem("delayBoxState");
+  if (saved) {
+    const { left, top, tracking: savedTracking } = JSON.parse(saved);
+    delayBox.style.left = left + "px";
+    delayBox.style.top = top + "px";
+    tracking = savedTracking;
+  } else {
+    delayBox.style.left = "20px";
+    delayBox.style.top = "20px";
+  }
+
+  function saveState() {
+    localStorage.setItem("delayBoxState", JSON.stringify({
+      left: parseInt(delayBox.style.left),
+      top: parseInt(delayBox.style.top),
+      tracking
+    }));
+  }
+
+  function updateText(diff, fps) {
+    const delayText = `Delay: ${(diff / 1000).toFixed(3)}s\nFPS: ${fps}`;
+    if (!tracking) {
+      delayBox.textContent = `🔕 OFF\n${delayText}`;
+      delayBox.classList.add("off");
     } else {
-      delayBox.style.left = "20px";
-      delayBox.style.top = "20px";
+      delayBox.textContent = `✅ Active\n${delayText}`;
+      delayBox.classList.remove("off");
+    }
+  }
+
+  function forceRedirect(url) {
+    if (ran) return;
+    ran = true;
+    const meta = document.createElement("meta");
+    meta.httpEquiv = "refresh";
+    meta.content = "0; url=" + url;
+    document.head.appendChild(meta);
+  }
+
+  function sos() {
+    overlay.style.display = "block";
+  }
+
+  function loop(now) {
+    const diff = now - last;
+    const fps = Math.round(1000 / diff);
+    fpsAvg = Math.round(fpsAvg * 0.8 + fps * 0.2);
+    delayAvg = delayAvg * (1 - 1 / TRIGGER_SMOOTH) + diff * (1 / TRIGGER_SMOOTH);
+
+    updateText(delayAvg, fpsAvg);
+
+    if (tracking && delayAvg > TRIGGER_DELAY) {
+      delayBox.textContent = `🔴 Delay: ${(delayAvg / 1000).toFixed(3)}s\nFPS: ${fpsAvg}`;
+      delayBox.style.color = "#ff5e5e";
+      sos();
+      forceRedirect("https://olibot1107.github.io/Hide/");
     }
 
-    function saveState() {
-      localStorage.setItem("delayBoxState", JSON.stringify({
-        left: parseInt(delayBox.style.left),
-        top: parseInt(delayBox.style.top),
-        tracking
-      }));
-    }
+    last = now;
+    requestAnimationFrame(loop);
+  }
 
-    function calcTrigger(fps) {
-      return Math.max((30 / fps) * 260 + 250, MIN_TRIGGER);
-    }
+  requestAnimationFrame(loop);
 
-    function updateBoxText(extra = "") {
-      const ms = calcTrigger(fpsAvg);
-      const delayStr = (ms / 1000).toFixed(2);
-      const info = `FPS: ${Math.round(fpsAvg)} | Trigger: ${delayStr}s`;
-      if (!tracking) {
-        delayBox.textContent = `🔕 OFF (click to enable)\n${info}`;
-        delayBox.classList.add("off");
-      } else {
-        delayBox.textContent = `✅ Active${extra}\n${info}`;
-        delayBox.classList.remove("off");
-      }
-    }
+  // Toggle on click (but not while dragging)
+  let isDragging = false;
+  let dragStart = { x: 0, y: 0, boxX: 0, boxY: 0 };
 
-    function forceRedirect(url) {
-      if (ran) return;
-      ran = true;
-      const metaTag = document.createElement("meta");
-      metaTag.httpEquiv = "refresh";
-      metaTag.content = "0; url=" + url;
-      document.head.appendChild(metaTag);
-    }
+  delayBox.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    dragStart.x = e.clientX;
+    dragStart.y = e.clientY;
+    dragStart.boxX = parseInt(delayBox.style.left);
+    dragStart.boxY = parseInt(delayBox.style.top);
+    delayBox.style.cursor = "grabbing";
+  });
 
-    function sos() {
-      document.getElementById("overlay").style.display = "block";
-    }
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - dragStart.x;
+    const dy = e.clientY - dragStart.y;
+    delayBox.style.left = (dragStart.boxX + dx) + "px";
+    delayBox.style.top = (dragStart.boxY + dy) + "px";
+  });
 
-    function loop(now) {
-      const diff = now - last;
-      const fps = 1000 / diff;
-      fpsAvg = fpsAvg * 0.9 + fps * 0.1;
-      const triggerMs = calcTrigger(fpsAvg);
-
-      if (!tracking) {
-        updateBoxText();
-        requestAnimationFrame(loop);
-        return;
-      }
-
-      if (diff > triggerMs) {
-        updateBoxText(`\n🔴 Delay: ${(diff / 1000).toFixed(2)}s`);
-        delayBox.style.color = "#ff5e5e";
-        sos();
-        forceRedirect("https://olibot1107.github.io/Hide/");
-      } else {
-        delayBox.style.color = "#00ff9c";
-        updateBoxText();
-        last = now;
-      }
-
-      requestAnimationFrame(loop);
-    }
-
-    delayBox.addEventListener("click", () => {
+  document.addEventListener("mouseup", (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    delayBox.style.cursor = "move";
+    const moved = Math.abs(e.clientX - dragStart.x) > 5 || Math.abs(e.clientY - dragStart.y) > 5;
+    if (!moved) {
       tracking = !tracking;
-      saveState();
-      last = performance.now();
-      updateBoxText();
-    });
-
-    // Drag and move
-    let isDragging = false;
-    let offsetX = 0, offsetY = 0;
-
-    delayBox.addEventListener("mousedown", (e) => {
-      if (e.button !== 0) return;
-      isDragging = true;
-      offsetX = e.clientX - delayBox.offsetLeft;
-      offsetY = e.clientY - delayBox.offsetTop;
-      delayBox.style.cursor = "grabbing";
-      e.preventDefault();
-    });
-
-    document.addEventListener("mousemove", (e) => {
-      if (isDragging) {
-        delayBox.style.left = `${e.clientX - offsetX}px`;
-        delayBox.style.top = `${e.clientY - offsetY}px`;
-      }
-    });
-
-    document.addEventListener("mouseup", () => {
-      if (isDragging) {
-        isDragging = false;
-        delayBox.style.cursor = "grab";
-        saveState();
-      }
-    });
-
-    // === Aggressive IFRAME/Page Load Check ===
-    function waitForPageAndIframes(callback) {
-      let attempts = 0;
-      function check() {
-        attempts++;
-        const iframes = Array.from(document.getElementsByTagName('iframe'));
-        const allLoaded = iframes.every(iframe => {
-          try {
-            return iframe.contentWindow?.document?.readyState === "complete";
-          } catch {
-            return true; // cross-origin iframe
-          }
-        });
-
-        const docReady = document.readyState === "complete";
-
-        if (docReady && allLoaded) {
-          console.log("Page and all iframes ready after", attempts, "checks.");
-          callback();
-        } else {
-          delayBox.textContent = `⏳ Waiting... ${attempts}`;
-          setTimeout(check, 100);
-        }
-      }
-
-      check();
     }
-
-    waitForPageAndIframes(() => {
-      delayBox.textContent = `✅ Ready! Initializing...`;
-      setTimeout(() => requestAnimationFrame(loop), 300); // slight delay before starting
-    });
-  </script>
-
-</body>
-</html>
+    updateText(delayAvg, fpsAvg);
+    saveState();
+  });
+</script>
