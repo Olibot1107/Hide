@@ -44,10 +44,15 @@
 
 <script>
   const delayBox = document.getElementById("delay");
+  const FPS_TRIGGER_OFFSET = 1.3;
+  const MIN_TRIGGER_MS = 100;
+
   let tracking = true;
   let ran = false;
   let last = performance.now();
   let fpsAvg = 60;
+  let fpsDisplay = "N/A";
+  let dynamicTrigger = 200;
 
   // Load saved state
   const saved = localStorage.getItem("delayBoxState");
@@ -56,7 +61,6 @@
     delayBox.style.left = left + "px";
     delayBox.style.top = top + "px";
     tracking = savedTracking;
-    updateBoxText();
   } else {
     delayBox.style.left = "20px";
     delayBox.style.top = "20px";
@@ -71,13 +75,12 @@
   }
 
   function updateBoxText(extra = "") {
-    const dynamicTrigger = Math.max(1000 / fpsAvg * 1.2, 100);
-    const delayInfo = `FPS: ${fpsAvg} | Trigger: ${(dynamicTrigger / 1000).toFixed(2)}s`;
+    const info = `FPS: ${fpsDisplay} | Trigger: ${(dynamicTrigger / 1000).toFixed(2)}s`;
     if (!tracking) {
-      delayBox.textContent = `🔕 OFF (click to enable)\n${delayInfo}`;
+      delayBox.textContent = `🔕 OFF (click to enable)\n${info}`;
       delayBox.classList.add("off");
     } else {
-      delayBox.textContent = `✅ Active${extra}\n${delayInfo}`;
+      delayBox.textContent = `✅ Active${extra}\n${info}`;
       delayBox.classList.remove("off");
     }
   }
@@ -99,10 +102,11 @@
 
   function loop(now) {
     const diff = now - last;
-    const fps = Math.round(1000 / diff);
-    fpsAvg = Math.round(fpsAvg * 0.9 + fps * 0.1); // smoothed
+    const fps = 1000 / diff;
+    fpsAvg = fpsAvg * 0.9 + fps * 0.1;
+    fpsDisplay = Math.round(fpsAvg);
 
-    const dynamicTrigger = Math.max(1000 / fpsAvg * 1.2, 100); // min 100ms, dynamic
+    dynamicTrigger = Math.max(1000 / fpsAvg * FPS_TRIGGER_OFFSET, MIN_TRIGGER_MS);
 
     if (!tracking) {
       updateBoxText();
@@ -127,7 +131,7 @@
 
   requestAnimationFrame(loop);
 
-  // Click to toggle
+  // Toggle tracking
   delayBox.addEventListener("click", () => {
     tracking = !tracking;
     saveState();
@@ -135,14 +139,17 @@
     updateBoxText();
   });
 
-  // Dragging
-  let isDragging = false, startX = 0, startY = 0;
+  // Dragging (improved responsiveness)
+  let isDragging = false;
+  let startX = 0, startY = 0;
 
   delayBox.addEventListener("mousedown", (e) => {
+    if (e.button !== 0) return; // only left click
     isDragging = true;
     startX = e.clientX - parseInt(delayBox.style.left);
     startY = e.clientY - parseInt(delayBox.style.top);
     delayBox.style.cursor = "grabbing";
+    e.preventDefault();
   });
 
   document.addEventListener("mousemove", (e) => {
@@ -152,7 +159,7 @@
     }
   });
 
-  document.addEventListener("mouseup", () => {
+  document.addEventListener("mouseup", (e) => {
     if (isDragging) {
       isDragging = false;
       delayBox.style.cursor = "grab";
