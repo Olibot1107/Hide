@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Secure Website Launcher</title>
+  <title>.|.</title>
   <script src="https://olibot1107.github.io/Hide/title.js"></script>
   <link href="https://fonts.googleapis.com/css?family=Roboto+Mono:100" rel="stylesheet">
   <style>
@@ -67,9 +67,9 @@
     <div class="text"></div>
   </div>
   <div id="siteForm">
-    <input type="text" id="siteName" placeholder="Name" class="hidden-input">
+    <input type="text" id="siteName" placeholder="NAME" class="hidden-input">
     <input type="text" id="siteUrl" placeholder="URL" class="hidden-input">
-    <button onclick="addWebsite()">Add Website</button><button onclick="showAllInputs()">Show All</button>
+    <button onclick="addWebsite()">Add Website</button><button onclick="showAllInputs()">Show All</button><button onclick="Help()">Help</button>
   </div>
 
   <div id="urlList"></div>
@@ -168,6 +168,21 @@
       }
       return "";
     }
+
+    function Help() {
+  alert(
+    `📖 How to Add a Website:
+
+1. Paste the website URL into the URL box.
+2. Enter a name for the website (don't leave the app while typing the name or it might not save).
+3. Press "Add Website" to save it.
+4. (Optional) Press "Show All" to review your saved entries.
+5. Once added, press "Open" to launch the website.
+
+✅ Tip: Always enter both the URL and the name before pressing "Add Website".`
+  );
+}
+
 
     document.addEventListener('DOMContentLoaded', renderSites);
   </script>
