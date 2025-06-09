@@ -1,6 +1,6 @@
 {
-  "name": "Game selection",
-  "short_name": "Games",
+  "name": "Nerd inc",
+  "short_name": "Nerd inc",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
