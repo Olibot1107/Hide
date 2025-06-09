@@ -126,18 +126,8 @@
         launchBtn.textContent = 'Open';
         launchBtn.className = 'launch-btn';
         launchBtn.onclick = () => {
-          var win = window.open()
-var url = `https://olibot1107.github.io/Hide/url?url=${site.url}`
-var iframe = win.document.createElement('iframe')
-iframe.style.width = "100%";
-iframe.style.height = "100%";
-iframe.style.border = "none";
-iframe.src = url
-win.document.body.appendChild(iframe);
-
-const script = win.document.createElement('script');
-script.src = 'https://olibot1107.github.io/Hide/title.js';
-win.document.head.appendChild(script);
+        var url = `https://olibot1107.github.io/Hide/url?url=${site.url}`
+        window.location.href = `${url}`
         };
 
         const removeBtn = document.createElement('button');
