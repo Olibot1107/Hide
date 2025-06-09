@@ -1,9 +1,18 @@
 <!DOCTYPE html>
+<style>
+  html, body {
+    background: #23212121;
+  }
+</style>
 <html>
 <head>
   <link rel="manifest" href="https://olibot1107.github.io/Hide/manifest.json" />
-<meta name="theme-color" content="#007AFF" />
+  <meta name="theme-color" content="#007AFF" />
+  <button onclick="Help()">Help</button>
   <script>
+    function Help() {
+      alert(`Press Shere icon then Press Add To Home screen Wait 3s Then Press add Then your Done`)
+    }
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js')
       .then(reg => console.log('Service Worker registered:', reg))
