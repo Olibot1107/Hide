@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Games</title>
+  <link rel="manifest" href="https://hello12111211.github.io/1/manifest.json" />
+<meta name="theme-color" content="#007AFF" />
+
+</head>
+<body>
+  <button onclick="sendNotification()">Notify Me</button>
+<H1>Add to home screen to install games app</H1>
+
+  <script>
+    // Request permission on page load
+    document.addEventListener('DOMContentLoaded', () => {
+      if (Notification.permission !== 'granted') {
+        Notification.requestPermission();
+      }
+    });
+
+    function sendNotification() {
+      if (Notification.permission === 'granted') {
+        new Notification('Hello!', {
+          body: 'This is a test notification from your website.',
+          icon: 'https://example.com/icon.png' // optional
+        });
+      } else {
+        alert('Please enable notifications.');
+      }
+    }
+  </script>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker registered:', reg))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  }
+</script>
+
+</body>
+</html>
