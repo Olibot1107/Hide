@@ -73,20 +73,14 @@
     <button onclick="addWebsite()">Add Website</button>
     <button onclick="showAllInputs()">Show All</button>
     <button onclick="Help()">Help</button>
+    <button onclick="showUrls()">Show URLs</button>
     <button onclick="window.location.href = 'https://olibot1107.github.io/Hide/url?url=https://olibot1107.github.io/Hide/urlimportpage/'">Url list</button>
   </div>
 
   <div id="urlList"></div>
 
   <script>
-    // Refresh all cookies on load (to extend expiration)
-    function refreshCookies() {
-      const keys = ['websites', 'removalCode'];
-      keys.forEach(key => {
-        const val = getCookie(key);
-        if (val) setCookie(key, val, 365);
-      });
-    }
+    let showURLsUnlocked = false;
 
     function showAllInputs() {
       const inputs = document.querySelectorAll('input');
@@ -131,8 +125,10 @@
         wrapper.className = 'site-entry';
 
         const label = document.createElement('span');
-        label.textContent = site.name;
         label.style.color = 'white';
+        label.innerHTML = showURLsUnlocked
+          ? `<strong>${site.name}</strong><br><small style="color:lightgray">${site.url}</small>`
+          : site.name;
 
         const launchBtn = document.createElement('button');
         launchBtn.textContent = 'Open';
@@ -175,6 +171,30 @@
       });
     }
 
+    function showUrls() {
+  let savedCode = getCookie('removalCode');
+
+  if (!savedCode) {
+    const newCode = prompt("No removal code set. Create one now:");
+    if (!newCode || newCode.trim().length === 0) {
+      alert("Removal code is required.");
+      return;
+    }
+    setCookie('removalCode', newCode.trim(), 365);
+    savedCode = newCode.trim();
+    alert("Code saved! You can now view full URLs.");
+  }
+
+  const input = prompt("Enter your removal code to show full URLs:");
+  if (input === savedCode) {
+    showURLsUnlocked = true;
+    alert("Access granted. Showing URLs.");
+    renderSites();
+  } else {
+    alert("Incorrect code.");
+  }
+}
+
     function setCookie(name, value, days) {
       const d = new Date();
       d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
@@ -200,12 +220,18 @@
 1. Paste the website URL into the URL box.
 2. Enter a name for the website.
 3. Press "Add Website" to save it.
-4. Press "Open" to launch the website.
-5. The first time you try to delete, you'll be asked to set a removal code.`);
+4. Use "Open" to launch the site.
+5. Use "Show URLs" to view full site links (requires code).
+
+✅ Tip: You must set a code when first deleting an entry.`);
     }
 
+    // Refresh all cookies on every visit to keep them alive
     document.addEventListener('DOMContentLoaded', () => {
-      refreshCookies();
+      const websites = getCookie('websites');
+      const removalCode = getCookie('removalCode');
+      if (websites) setCookie('websites', websites, 365);
+      if (removalCode) setCookie('removalCode', removalCode, 365);
       renderSites();
     });
   </script>
@@ -221,7 +247,7 @@
       setText(newText) {
         const oldText = this.el.innerText;
         const length = Math.max(oldText.length, newText.length);
-        const promise = new Promise(resolve => this.resolve = resolve);
+        const promise = new Promise((resolve) => this.resolve = resolve);
         this.queue = [];
 
         for (let i = 0; i < length; i++) {
