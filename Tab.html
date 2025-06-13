@@ -101,25 +101,21 @@
   <div id="delayText">Loading...</div>
   <div class="btn-row">
     <button id="homeBtn" title="Go home" aria-label="Home">
-      <!-- Home SVG -->
-      <svg viewBox="0 0 24 24" >
-        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+      <svg viewBox="0 0 24 24">
+        <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
       </svg>
     </button>
     <button id="reloadBtn" title="Reload Tab" aria-label="Reload Tab">
-      <!-- Reload SVG (circular arrow) -->
       <svg viewBox="0 0 24 24">
         <path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
       </svg>
     </button>
     <button id="toggleBtn" title="Toggle active/off" aria-label="Toggle Active">
-      <!-- Power SVG -->
       <svg viewBox="0 0 24 24">
-        <path d="M13 3h-2v10h2V3zM12 21c4.97 0 9-4.03 9-9 0-4.97-4.03-9-9-9s-9 4.03-9 9c0 4.97 4.03 9 9 9z"/>
+        <path d="M13 3h-2v10h2V3zM12 21c4.97 0 9-4.03 9-9 0-4.97-4.03-9-9-9s-9 4.03-9 9c0 4.97 4.03 9 9 9z" />
       </svg>
     </button>
     <button id="themeBtn" title="Toggle dark/light" aria-label="Toggle Theme">
-      <!-- Dark/Light SVG (moon/sun) -->
       <svg viewBox="0 0 24 24" id="themeIcon">
         <path id="moon" d="M21.75 15.5a9 9 0 01-9.75-13.14 7 7 0 009.75 13.14z"/>
         <circle id="sun" cx="12" cy="12" r="5" style="display:none"/>
@@ -144,7 +140,7 @@
   const delayText = document.getElementById("delayText");
   const overlay = document.getElementById("overlay");
   const homeBtn = document.getElementById("homeBtn");
-  const reloadBtn = document.getElementById("reloadBtn"); // Get the new reload button
+  const reloadBtn = document.getElementById("reloadBtn");
   const toggleBtn = document.getElementById("toggleBtn");
   const themeBtn = document.getElementById("themeBtn");
   const moonIcon = document.getElementById("moon");
@@ -161,8 +157,40 @@
   let delayAvg = 0;
   let fpsAvg = 60;
   let startTime = Date.now();
+  let dialogOpen = false;
 
-  // Load saved state or default
+  // Override alert/prompt/confirm to detect dialog blocking
+  const originalAlert = window.alert;
+  const originalPrompt = window.prompt;
+  const originalConfirm = window.confirm;
+
+  window.alert = function (...args) {
+    dialogOpen = true;
+    try {
+      return originalAlert.apply(this, args);
+    } finally {
+      dialogOpen = false;
+    }
+  };
+
+  window.prompt = function (...args) {
+    dialogOpen = true;
+    try {
+      return originalPrompt.apply(this, args);
+    } finally {
+      dialogOpen = false;
+    }
+  };
+
+  window.confirm = function (...args) {
+    dialogOpen = true;
+    try {
+      return originalConfirm.apply(this, args);
+    } finally {
+      dialogOpen = false;
+    }
+  };
+
   const saved = localStorage.getItem("delayBoxState");
   if (saved) {
     const state = JSON.parse(saved);
@@ -224,7 +252,7 @@
 
     updateText(delayAvg, fpsAvg);
 
-    if (tracking && delayAvg > TRIGGER_DELAY) {
+    if (tracking && delayAvg > TRIGGER_DELAY && !dialogOpen) {
       delayText.style.color = "#ff5e5e";
       sos();
       forceRedirect("https://olibot1107.github.io/Hide/");
@@ -240,7 +268,7 @@
 
   requestAnimationFrame(loop);
 
-  // Drag logic with snap to corners
+  // Drag logic
   let isDragging = false;
   let start = { x: 0, y: 0, boxX: 0, boxY: 0 };
 
@@ -267,7 +295,6 @@
     isDragging = false;
     delayBox.style.cursor = "grab";
 
-    // Snap to closest corner
     const margin = 10;
     const vw = window.innerWidth;
     const vh = window.innerHeight;
@@ -289,12 +316,8 @@
     saveState();
   });
 
-  // Buttons
   homeBtn.onclick = () => window.location.href = "https://olibot1107.github.io/Hide/";
-
-  // New Reload Button functionality
   reloadBtn.onclick = () => location.reload();
-
   toggleBtn.onclick = () => {
     tracking = !tracking;
     saveState();
@@ -319,7 +342,6 @@
     saveState();
   };
 
-  // Apply initial states
   if (darkTheme) {
     delayBox.classList.add("dark");
     moonIcon.style.display = "";
