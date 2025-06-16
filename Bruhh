@@ -1,0 +1,63 @@
+use this for detecting alerts
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Iframe Alert Detection</title>
+</head>
+<body>
+  <h1>Iframe Alert Test</h1>
+  <div id="iframe-container"></div>
+
+  <script>
+    // Create the iframe
+    const iframe = document.createElement("iframe");
+    iframe.srcdoc = `
+      <!DOCTYPE html>
+      <html>
+      <body>
+        <script>
+          setTimeout(() => alert("Hello from iframe!"), 100);
+        <\/script>
+      </body>
+      </html>
+    `;
+    iframe.style.width = "400px";
+    iframe.style.height = "200px";
+    document.getElementById("iframe-container").appendChild(iframe);
+
+    // Wait for iframe to load
+    iframe.onload = () => {
+      try {
+        const frame = iframe.contentWindow;
+        const originalAlert = frame.alert;
+
+        // Override the iframe's alert function
+        frame.alert = function (msg) {
+          console.log("Alert detected in iframe:", msg);
+
+          document.dispatchEvent(new CustomEvent("frameAlertTriggered", {
+            detail: { frameIndex: 0, message: msg, status: "started" }
+          }));
+
+          originalAlert(msg); // Actually show the alert
+
+          document.dispatchEvent(new CustomEvent("frameAlertTriggered", {
+            detail: { frameIndex: 0, message: msg, status: "done" }
+          }));
+        };
+      } catch (e) {
+        console.warn("Cannot override alert in iframe:", e);
+      }
+    };
+
+    // Listen to custom alert event
+    document.addEventListener("frameAlertTriggered", function (event) {
+      const { frameIndex, status, message } = event.detail;
+      console.log(`Event: Alert in iframe index ${frameIndex} - Status: ${status}`);
+      console.log(`Message: ${message}`);
+      alert("eee")
+    });
+  </script>
+</body>
+</html>
