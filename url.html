@@ -99,15 +99,9 @@
       const script = document.getElementById("titleScript");
 
       if (status === "started" && script) {
-        script.remove(); // Unload the script
-        console.log("title.js removed");
+        alert("start")
       } else if (status === "done") {
-        // Reload the script
-        const newScript = document.createElement("script");
-        newScript.id = "titleScript";
-        newScript.src = "https://olibot1107.github.io/Hide/title.js";
-        document.head.appendChild(newScript);
-        console.log("title.js reloaded");
+        alert("done")
       }
     });
   </script>
