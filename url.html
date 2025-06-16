@@ -3,25 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <title>erm</title>
-  <script src="https://olibot1107.github.io/Hide/title.js"></script>
+  <script id="titleScript" src="https://olibot1107.github.io/Hide/title.js"></script>
   <style>
     html, body {
       margin: 0; 
       padding: 0; 
       width: 100%; 
       height: 100%; 
-      overflow: hidden; /* no scroll */
+      overflow: hidden;
     }
     #iframe {
-      position: fixed !important;
+      position: fixed;
       top: 0; 
       left: 0; 
-      width: 100vw !important;
-      height: 100vh !important;
-      border: none !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      display: block;
+      width: 100vw;
+      height: 100vh;
+      border: none;
       z-index: 9999;
     }
     #error {
@@ -45,29 +42,74 @@
   <div id="error">hi soz i cant find this OH WAIT THIS SHIT DONT EXIST</div>
 
   <script>
-  const params = new URLSearchParams(window.location.search);
-  const url = params.get("url");
+    const params = new URLSearchParams(window.location.search);
+    const url = params.get("url");
 
-  const error = document.getElementById("error");
-  const iframe = document.getElementById("iframe");
+    const error = document.getElementById("error");
+    const iframe = document.getElementById("iframe");
 
-  if (!url) {
-    error.style.display = "flex";
-    error.innerText = "⚠️ No URL provided.";
-  } else {
-    const fullUrl = url.startsWith("http") ? url : "https://" + url;
+    if (!url) {
+      error.style.display = "flex";
+      error.innerText = "⚠️ No URL provided.";
+    } else {
+      const fullUrl = url.startsWith("http") ? url : "https://" + url;
+      iframe.srcdoc = `
+        <!DOCTYPE html>
+        <html>
+        <body>
+          <script>
+            setTimeout(() => alert("Hello from iframe!"), 100);
+          <\/script>
+        </body>
+        </html>
+      `;
+      const errorTimeout = setTimeout(() => {
+        window.location.href = "https://olibot1107.github.io/Hide/";
+      }, 4000);
 
-    // Load into iframe
-    iframe.src = fullUrl;
+      iframe.onload = () => {
+        clearTimeout(errorTimeout);
 
-    // If it doesn't load in 4 seconds, redirect to Google
-    const errorTimeout = setTimeout(() => {
-      window.location.href = "https://olibot1107.github.io/Hide/";
-    }, 4000);
+        try {
+          const frame = iframe.contentWindow;
+          const originalAlert = frame.alert;
 
-    // Cancel the redirect if the iframe loads successfully
-    iframe.onload = () => clearTimeout(errorTimeout);
-  }
-</script>
+          frame.alert = function (msg) {
+            // Dispatch custom event before alert
+            document.dispatchEvent(new CustomEvent("frameAlertTriggered", {
+              detail: { message: msg, status: "started" }
+            }));
+
+            originalAlert(msg); // Show the alert
+
+            // Dispatch after alert finishes
+            document.dispatchEvent(new CustomEvent("frameAlertTriggered", {
+              detail: { message: msg, status: "done" }
+            }));
+          };
+        } catch (e) {
+          console.warn("Cannot override alert in iframe:", e);
+        }
+      };
+    }
+
+    // Listen to alert triggers
+    document.addEventListener("frameAlertTriggered", (event) => {
+      const { status } = event.detail;
+      const script = document.getElementById("titleScript");
+
+      if (status === "started" && script) {
+        script.remove(); // Unload the script
+        console.log("title.js removed");
+      } else if (status === "done") {
+        // Reload the script
+        const newScript = document.createElement("script");
+        newScript.id = "titleScript";
+        newScript.src = "https://olibot1107.github.io/Hide/title.js";
+        document.head.appendChild(newScript);
+        console.log("title.js reloaded");
+      }
+    });
+  </script>
 </body>
 </html>
