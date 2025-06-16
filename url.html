@@ -45,25 +45,29 @@
   <div id="error">hi soz i cant find this OH WAIT THIS SHIT DONT EXIST</div>
 
   <script>
-    const params = new URLSearchParams(window.location.search);
-    const url = params.get("url");
+  const params = new URLSearchParams(window.location.search);
+  const url = params.get("url");
 
-    if (!url) {
-      const error = document.getElementById("error");
-      error.style.display = "flex";
-      error.innerText = "⚠️ No URL provided.";
-    } else {
-      const fullUrl = url.startsWith("http") ? url : "https://" + url;
-      const iframe = document.getElementById("iframe");
+  const error = document.getElementById("error");
+  const iframe = document.getElementById("iframe");
 
-      // Fallback error display if iframe fails to load in 4 seconds
-      const errorTimeout = setTimeout(() => {
-        document.getElementById("error").style.display = "flex";
-      }, 4000);
+  if (!url) {
+    error.style.display = "flex";
+    error.innerText = "⚠️ No URL provided.";
+  } else {
+    const fullUrl = url.startsWith("http") ? url : "https://" + url;
 
-      iframe.onload = () => clearTimeout(errorTimeout);
-      iframe.src = fullUrl;
-    }
-  </script>
+    // Load into iframe
+    iframe.src = fullUrl;
+
+    // If it doesn't load in 4 seconds, redirect to Google
+    const errorTimeout = setTimeout(() => {
+      window.location.href = "https://olibot1107.github.io/Hide/";
+    }, 4000);
+
+    // Cancel the redirect if the iframe loads successfully
+    iframe.onload = () => clearTimeout(errorTimeout);
+  }
+</script>
 </body>
 </html>
