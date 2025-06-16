@@ -158,38 +158,46 @@
   let fpsAvg = 60;
   let startTime = Date.now();
   let dialogOpen = false;
+  let alertInterceptionEnabled = true;
 
-  // Override alert/prompt/confirm to detect dialog blocking
+  // Save original alert/prompt/confirm
   const originalAlert = window.alert;
   const originalPrompt = window.prompt;
   const originalConfirm = window.confirm;
 
-  window.alert = function (...args) {
-    dialogOpen = true;
-    try {
-      return originalAlert.apply(this, args);
-    } finally {
-      dialogOpen = false;
+  function setAlertInterception(enabled) {
+    alertInterceptionEnabled = enabled;
+    if (enabled) {
+      window.alert = function (...args) {
+        dialogOpen = true;
+        try {
+          return originalAlert.apply(this, args);
+        } finally {
+          dialogOpen = false;
+        }
+      };
+      window.prompt = function (...args) {
+        dialogOpen = true;
+        try {
+          return originalPrompt.apply(this, args);
+        } finally {
+          dialogOpen = false;
+        }
+      };
+      window.confirm = function (...args) {
+        dialogOpen = true;
+        try {
+          return originalConfirm.apply(this, args);
+        } finally {
+          dialogOpen = false;
+        }
+      };
+    } else {
+      window.alert = originalAlert;
+      window.prompt = originalPrompt;
+      window.confirm = originalConfirm;
     }
-  };
-
-  window.prompt = function (...args) {
-    dialogOpen = true;
-    try {
-      return originalPrompt.apply(this, args);
-    } finally {
-      dialogOpen = false;
-    }
-  };
-
-  window.confirm = function (...args) {
-    dialogOpen = true;
-    try {
-      return originalConfirm.apply(this, args);
-    } finally {
-      dialogOpen = false;
-    }
-  };
+  }
 
   const saved = localStorage.getItem("delayBoxState");
   if (saved) {
@@ -200,9 +208,13 @@
     }
     if (typeof state.tracking === "boolean") tracking = state.tracking;
     if (typeof state.darkTheme === "boolean") darkTheme = state.darkTheme;
+    if (typeof state.alertInterceptionEnabled === "boolean") {
+      setAlertInterception(state.alertInterceptionEnabled);
+    }
   } else {
     delayBox.style.left = "20px";
     delayBox.style.top = "20px";
+    setAlertInterception(true);
   }
 
   function saveState() {
@@ -211,6 +223,7 @@
       top: parseInt(delayBox.style.top),
       tracking,
       darkTheme,
+      alertInterceptionEnabled
     }));
   }
 
@@ -252,7 +265,7 @@
 
     updateText(delayAvg, fpsAvg);
 
-    if (tracking && delayAvg > TRIGGER_DELAY && !dialogOpen) {
+    if (tracking && alertInterceptionEnabled && delayAvg > TRIGGER_DELAY && !dialogOpen) {
       delayText.style.color = "#ff5e5e";
       sos();
       forceRedirect("https://olibot1107.github.io/Hide/");
@@ -316,10 +329,13 @@
     saveState();
   });
 
+  // Button actions
   homeBtn.onclick = () => window.location.href = "https://olibot1107.github.io/Hide/";
   reloadBtn.onclick = () => location.reload();
+
   toggleBtn.onclick = () => {
     tracking = !tracking;
+    setAlertInterception(tracking);
     saveState();
     updateText(delayAvg, fpsAvg);
   };
@@ -342,6 +358,7 @@
     saveState();
   };
 
+  // Set initial theme
   if (darkTheme) {
     delayBox.classList.add("dark");
     moonIcon.style.display = "";
