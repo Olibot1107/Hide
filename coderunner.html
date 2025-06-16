@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HTML Code Runner with Cookies</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0; padding: 0;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      background: #282c34;
+      color: #eee;
+    }
+    header {
+      background: #20232a;
+      padding: 10px;
+      text-align: center;
+      font-size: 1.5em;
+      font-weight: bold;
+      user-select: none;
+    }
+    #editor-container {
+      display: flex;
+      flex: 1;
+      gap: 10px;
+      padding: 10px;
+      box-sizing: border-box;
+    }
+    textarea {
+      flex: 1;
+      background: #1e1e1e;
+      color: #d4d4d4;
+      border: 1px solid #444;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: 'Courier New', Courier, monospace;
+      font-size: 14px;
+      resize: none;
+      height: 100%;
+      box-sizing: border-box;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+    .editor-section {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    iframe {
+      flex: 1;
+      border: 1px solid #444;
+      border-radius: 4px;
+      background: white;
+    }
+    footer {
+      padding: 6px 10px;
+      background: #20232a;
+      font-size: 0.9em;
+      text-align: center;
+      color: #888;
+      user-select: none;
+    }
+  </style>
+</head>
+<body>
+
+<header>HTML Code Runner (Saved in Cookies)</header>
+
+<div id="editor-container">
+  <div class="editor-section">
+    <label for="html-code">HTML</label>
+    <textarea id="html-code" placeholder="Write your HTML here"></textarea>
+  </div>
+  <div class="editor-section">
+    <label for="css-code">CSS</label>
+    <textarea id="css-code" placeholder="Write your CSS here"></textarea>
+  </div>
+  <div class="editor-section">
+    <label for="js-code">JavaScript</label>
+    <textarea id="js-code" placeholder="Write your JavaScript here"></textarea>
+  </div>
+</div>
+
+<iframe id="preview"></iframe>
+
+<footer>Changes are saved automatically in cookies</footer>
+
+<script>
+  // Utility functions for cookies
+  function setCookie(name, value, days=365) {
+    const d = new Date();
+    d.setTime(d.getTime() + (days*24*60*60*1000));
+    const expires = "expires="+ d.toUTCString();
+    document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+  }
+
+  function getCookie(name) {
+    const cname = name + "=";
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const ca = decodedCookie.split(';');
+    for(let c of ca) {
+      while (c.charAt(0) === ' ') c = c.substring(1);
+      if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
+    }
+    return "";
+  }
+
+  // Elements
+  const htmlCode = document.getElementById('html-code');
+  const cssCode = document.getElementById('css-code');
+  const jsCode = document.getElementById('js-code');
+  const preview = document.getElementById('preview');
+
+  // Load from cookies if any
+  htmlCode.value = getCookie('code_html') || '<h1>Hello, world!</h1>';
+  cssCode.value = getCookie('code_css') || 'body { font-family: Arial; padding: 20px; }';
+  jsCode.value = getCookie('code_js') || 'console.log("Welcome!");';
+
+  function updatePreview() {
+    const html = htmlCode.value;
+    const css = `<style>${cssCode.value}</style>`;
+    const js = `<script>${jsCode.value}<\/script>`;
+
+    const srcDoc = `
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        ${css}
+      </head>
+      <body>
+        ${html}
+        ${js}
+      </body>
+      </html>
+    `;
+
+    preview.srcdoc = srcDoc;
+
+    // Save to cookies
+    setCookie('code_html', html);
+    setCookie('code_css', cssCode.value);
+    setCookie('code_js', jsCode.value);
+  }
+
+  // Update preview on input
+  htmlCode.addEventListener('input', updatePreview);
+  cssCode.addEventListener('input', updatePreview);
+  jsCode.addEventListener('input', updatePreview);
+
+  // Initial preview
+  updatePreview();
+</script>
+
+</body>
+</html>
