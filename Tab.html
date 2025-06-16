@@ -216,6 +216,24 @@
     overlay.style.display = "block";
   }
 
+  // Listen to alert triggers
+  document.addEventListener("frameAlertTriggered", (event) => {
+    const { status } = event.detail;
+    const script = document.getElementById("titleScript");
+
+    if (status === "started" && script) {
+      alert("start")
+      const timeOnline = formatTime(Date.now() - startTime);
+      const delay = (diff / 1000).toFixed(3);
+      tracking = false;
+    } else if (status === "done") {
+      alert("done")
+      const timeOnline = formatTime(Date.now() - startTime);
+      const delay = (diff / 1000).toFixed(3);
+      tracking = true;
+    }
+  });
+
   function loop(now) {
     const diff = now - last;
     const fps = Math.round(1000 / diff);
