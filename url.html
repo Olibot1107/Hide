@@ -3,22 +3,25 @@
 <head>
   <meta charset="UTF-8" />
   <title>erm</title>
-  <script id="titleScript" src="https://olibot1107.github.io/Hide/title.js"></script>
+  <script src="https://olibot1107.github.io/Hide/title.js"></script>
   <style>
     html, body {
       margin: 0; 
       padding: 0; 
       width: 100%; 
       height: 100%; 
-      overflow: hidden;
+      overflow: hidden; /* no scroll */
     }
     #iframe {
-      position: fixed;
+      position: fixed !important;
       top: 0; 
       left: 0; 
-      width: 100vw;
-      height: 100vh;
-      border: none;
+      width: 100vw !important;
+      height: 100vh !important;
+      border: none !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      display: block;
       z-index: 9999;
     }
     #error {
@@ -45,63 +48,22 @@
     const params = new URLSearchParams(window.location.search);
     const url = params.get("url");
 
-    const error = document.getElementById("error");
-    const iframe = document.getElementById("iframe");
-
     if (!url) {
+      const error = document.getElementById("error");
       error.style.display = "flex";
       error.innerText = "⚠️ No URL provided.";
     } else {
       const fullUrl = url.startsWith("http") ? url : "https://" + url;
-      iframe.srcdoc = `
-        <!DOCTYPE html>
-        <html>
-        <body>
-          <script>
-            setTimeout(() => alert("Hello from iframe!"), 100);
-          <\/script>
-        </body>
-        </html>
-      `;
+      const iframe = document.getElementById("iframe");
+
+      // Fallback error display if iframe fails to load in 4 seconds
       const errorTimeout = setTimeout(() => {
-        window.location.href = "https://olibot1107.github.io/Hide/";
+        document.getElementById("error").style.display = "flex";
       }, 4000);
 
-      iframe.onload = () => {
-        clearTimeout(errorTimeout);
-
-        try {
-          const frame = iframe.contentWindow;
-          const originalAlert = frame.alert;
-
-          frame.alert = function (msg) {
-            // Dispatch custom event before alert
-            document.dispatchEvent(new CustomEvent("frameAlertTriggered", {
-              detail: { message: msg, status: "started" }
-            }));
-
-            originalAlert(msg); // Show the alert
-
-            // Dispatch after alert finishes
-            document.dispatchEvent(new CustomEvent("frameAlertTriggered", {
-              detail: { message: msg, status: "done" }
-            }));
-          };
-        } catch (e) {
-          console.warn("Cannot override alert in iframe:", e);
-        }
-      };
+      iframe.onload = () => clearTimeout(errorTimeout);
+      iframe.src = fullUrl;
     }
-
-    // Listen to alert triggers
-    document.addEventListener("frameAlertTriggered", (event) => {
-      const { status } = event.detail;
-      const script = document.getElementById("titleScript");
-
-      if (status === "started" && script) {
-      } else if (status === "done") {
-      }
-    });
   </script>
 </body>
 </html>

@@ -331,19 +331,4 @@
     sunIcon.style.display = "";
     sunRays.style.display = "";
   }
-  document.addEventListener("frameAlertTriggered", (event) => {
-  const { status } = event.detail;
-
-  if (status === "started") {
-    hi = true;
-    delayText.textContent = "⏸️ Paused";
-    overlay.style.display = "none";
-    ran = false;
-  } else if (status === "done") {
-    hi = false;
-    startTime = Date.now(); // now start the timer
-    requestAnimationFrame(loop); // restart loop if paused
-  }
-});
-
 </script>
