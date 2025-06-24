@@ -1,46 +1,14 @@
 [
   {
-    "name": "Alien blaster",
-    "url": "https://hello12111211.github.io/1/games/alien.html"
+    "name": "coastal world",
+    "url": "https://coastalworld.com/"
   },
   {
-    "name": "Pixel duel",
-    "url": "https://hello12111211.github.io/1/games/pixelduel.html"
+    "name": "choo choo world",
+    "url": "https://choochooworld.com/"
   },
   {
-    "name": "Memory match 4X4",
-    "url": "https://hello12111211.github.io/1/games/memorye.html"
-  },
-  {
-    "name": "Memory match 6X6",
-    "url": "https://hello12111211.github.io/1/games/memoryh.html"
-  },
-  {
-    "name": "Speed Test",
-    "url": "https://hello12111211.github.io/1/games/speedtest.html"
-  },
-  {
-    "name": "Flappy bird",
-    "url": "https://hello12111211.github.io/1/games/flappy.html"
-  },
-  {
-    "name": "Tetris",
-    "url": "https://hello12111211.github.io/1/games/t.html"
-  },
-  {
-    "name": "Reaction time",
-    "url": "https://hello12111211.github.io/1/games/reactiontime.html"
-  },
-  {
-    "name": "Hang man",
-    "url": "https://hello12111211.github.io/1/games/hangman.html"
-  },
-  {
-    "name": "Mini golf",
-    "url": "https://hello12111211.github.io/1/games/minigolf.html"
-  },
-  {
-    "name": "Head and tails",
-    "url": "https://hello12111211.github.io/1/games/h+t"
+    "name": "Fly to the end",
+    "url": "https://tympanus.net/Tutorials/TheAviator/"
   }
 ]
