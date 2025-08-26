@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Install Helper</title>
+  <script src="Hide/js/title.js"></script>
   <link rel="manifest" href="https://olibot1107.github.io/Hide/manifest.json" />
   <meta name="theme-color" content="#007AFF" />
   <style>
@@ -67,24 +68,6 @@
     ✅ Press the Share icon → Add to Home Screen → Wait 3s → Press "Add"
   </div>
 
-  <script>
-    function Help() {
-      const popup = document.getElementById("popup");
-      popup.classList.add("show");
-      setTimeout(() => popup.classList.remove("show"), 6000);
-    }
-
-    // Auto show popup after 3s
-    window.addEventListener('load', () => {
-      setTimeout(Help, 3000);
-    });
-
-    // Register Service Worker
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('https://olibot1107.github.io/Hide/service-worker.js')
-        .then(reg => console.log('Service Worker registered:', reg))
-        .catch(err => console.error('Service Worker registration failed:', err));
-    }
-  </script>
+  <script src="Hide/js/Install.js"></script>
 </body>
 </html>
