@@ -1,0 +1,35 @@
+name: Check Updates
+
+on:
+  schedule:
+    - cron: 0 0 * * *
+  workflow_dispatch:
+
+jobs:
+  check_updates:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Fetch latest changes
+        run: git fetch origin
+
+      - name: Check for updates
+        run: |
+          if git diff --quiet origin/main HEAD; then
+            echo "No updates available"
+          else
+            echo "Updates available"
+            echo "Changes:"
+            git diff origin/main HEAD
+          fi
+
+      - name: Comment on commit
+        if: ${{ failure() }}
+        run: |
+          curl -X POST \
+          https://api.github.com/repos/${GITHUB_REPOSITORY}/issues/${GITHUB_REF##*/}/comments \
+          -H 'Content-Type: application/json' \
+          -H "Authorization: Bearer ${GITHUB_TOKEN}" \
+          -d '{"body": "Updates are available in the Hide project. Please check the repository for more details."}'
