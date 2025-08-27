@@ -153,6 +153,25 @@ document.addEventListener('DOMContentLoaded', () => {
   if (websites) setCookie('websites', websites, 365);
   if (removalCode) setCookie('removalCode', removalCode, 365);
   renderSites();
+
+  // Notification bar functionality
+  const notificationBar = document.getElementById('notification-bar');
+  const notificationClose = document.getElementById('notification-close');
+
+  if (notificationBar && notificationClose) {
+    console.log('Notification bar and close button found');
+    // Show the notification bar
+    notificationBar.style.display = 'block';
+    console.log('Notification bar display style set to block');
+
+    // Hide the notification bar when close button is clicked
+    notificationClose.addEventListener('click', () => {
+      notificationBar.style.display = 'none';
+      console.log('Notification bar hidden');
+    });
+  } else {
+    console.error('Notification bar or close button not found');
+  }
 });
 
 class TextScramble {
