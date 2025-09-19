@@ -1,73 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Install Helper</title>
-  <script src="Hide/js/title.js"></script>
-  <link rel="manifest" href="https://olibot1107.github.io/Hide/manifest.json" />
-  <meta name="theme-color" content="#007AFF" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full Screen iFrame</title>
   <style>
     html, body {
       margin: 0;
       padding: 0;
-      background: #1e1e1e;
-      color: #fff;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
+      height: 100%;
+      overflow: hidden; /* Prevent scrollbars */
+    }
+    iframe {
+      width: 100vw;
       height: 100vh;
-      text-align: center;
-    }
-
-    button {
-      padding: 12px 24px;
-      font-size: 16px;
-      background-color: #007aff;
-      color: white;
       border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin-top: 20px;
-      transition: background-color 0.3s ease;
-    }
-
-    button:hover {
-      background-color: #005fc1;
-    }
-
-    .popup {
-      background-color: #2c2c2c;
-      border-left: 5px solid #007aff;
-      padding: 15px 20px;
-      border-radius: 8px;
-      max-width: 90%;
-      box-shadow: 0 0 10px rgba(0,0,0,0.4);
-      display: none;
-      margin-top: 20px;
-    }
-
-    .popup.show {
-      display: block;
-      animation: fadeIn 0.5s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
     }
   </style>
 </head>
 <body>
-
-  <h1>📱 Add This App to Your Home Screen</h1>
-  <button onclick="Help()">Help</button>
-  <div id="popup" class="popup">
-    ✅ Press the Share icon → Add to Home Screen → Wait 3s → Press "Add"
-  </div>
-
-  <script src="Hide/js/Install.js"></script>
+  <iframe src="https://olibot13.pythonanywhere.com" title="W3Schools Free Online Web Tutorials"></iframe>
 </body>
 </html>
