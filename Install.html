@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Full Screen iFrame</title>
+      <link rel="manifest" href="https://olibot1107.github.io/Hide/manifest.json" />
   <style>
     html, body {
       margin: 0;
@@ -20,5 +21,12 @@
 </head>
 <body>
   <iframe src="https://olibot13.pythonanywhere.com" title="W3Schools Free Online Web Tutorials"></iframe>
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js')
+      .then(reg => console.log('Service Worker registered:', reg))
+      .catch(err => console.error('Service Worker registration failed:', err));
+  }
+</script>
 </body>
 </html>
